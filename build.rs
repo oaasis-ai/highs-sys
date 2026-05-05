@@ -92,6 +92,7 @@ fn build() -> bool {
     use cmake::Config;
     let target = env::var("TARGET").unwrap();
     let emscripten = target.contains("emscripten");
+    let apple = target.contains("apple");
     let mut dst = Config::new("HiGHS");
     let crt_static = target_has_feature("crt-static");
 
@@ -112,6 +113,17 @@ fn build() -> bool {
     // Avoid using downstream project's profile setting for HiGHS build.
     if cfg!(feature = "highs_release") {
         dst.profile("Release");
+    }
+
+    if cfg!(feature = "hipo") {
+        dst.define("HIPO", "ON");
+        // HiPO needs BLAS. On Apple targets HiGHS' FindHipoDeps falls back to
+        // BLA_VENDOR=Apple (Accelerate), which is always present. On every
+        // other platform we let HiGHS fetch + build OpenBLAS so the user
+        // doesn't need to install one system-wide.
+        if !apple {
+            dst.define("BUILD_OPENBLAS", "ON");
+        }
     }
 
     let dst = dst
@@ -140,7 +152,16 @@ fn build() -> bool {
         println!("cargo:rustc-link-lib=z");
     }
 
-    let apple = target.contains("apple");
+    if cfg!(feature = "hipo") {
+        if apple {
+            // Accelerate provides BLAS on macOS.
+            println!("cargo:rustc-link-lib=framework=Accelerate");
+        } else {
+            // HiGHS' FetchContent installs OpenBLAS into the same prefix.
+            println!("cargo:rustc-link-lib=static=openblas");
+        }
+    }
+
     let linux = target.contains("linux");
     let mingw = target.contains("pc-windows-gnu");
     if apple || emscripten {
