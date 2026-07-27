@@ -1,7 +1,7 @@
 [package]
 name = "highs-sys"
-# Bundled HiGHS solver (HiGHS submodule) is v1.15.1
-version = "1.15.0"
+# Version tracks the bundled HiGHS solver (HiGHS submodule)
+version = "1.15.1"
 authors = ["Ophir LOJKINE"]
 edition = "2018"
 description = "Rust binding for the HiGHS linear programming solver. See http://highs.dev."
