@@ -117,6 +117,12 @@ fn build() -> bool {
 
     if cfg!(feature = "hipo") {
         dst.define("HIPO", "ON");
+        // Statically link the extras (HiPO + AMD/BLAS/METIS/RCM). The default
+        // builds them into a separate shared `highs_extras` library loaded at
+        // runtime via an @loader_path/$ORIGIN rpath; a statically-linked Rust
+        // consumer never ships that library next to the binary, so HiGHS 1.15+
+        // finds the extras unavailable and rejects the `hipo` solver options.
+        dst.define("BUILD_SHARED_EXTRAS_LIB", "OFF");
         // HiPO needs BLAS. On Apple targets HiGHS' FindHipoDeps falls back to
         // BLA_VENDOR=Apple (Accelerate), which is always present. On every
         // other platform we let HiGHS fetch + build OpenBLAS so the user
@@ -153,6 +159,12 @@ fn build() -> bool {
     }
 
     if cfg!(feature = "hipo") {
+        // Static archives aren't merged into `libhighs.a`, so the extras must
+        // be linked explicitly (after `highs`, which references them, and
+        // before BLAS, which the extras reference). whole-archive keeps the
+        // feature-registration objects that `HighsExternalApi::isAvailable`
+        // resolves — without it the linker drops them and HiPO reports missing.
+        println!("cargo:rustc-link-lib=static:+whole-archive=highs_extras");
         if apple {
             // Accelerate provides BLAS on macOS.
             println!("cargo:rustc-link-lib=framework=Accelerate");

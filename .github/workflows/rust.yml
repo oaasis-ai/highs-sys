@@ -39,6 +39,9 @@ jobs:
       run: cargo build
     - name: Run tests
       run: cargo test
+    - name: Run tests with HiPO
+      if: matrix.config.os != 'windows-latest'
+      run: cargo test --features hipo
     - name: Run tests with static CRT
       if: matrix.config.os == 'windows-latest'
       env:
