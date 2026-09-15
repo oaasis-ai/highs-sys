@@ -129,6 +129,13 @@ fn build() -> bool {
         // doesn't need to install one system-wide.
         if !apple {
             dst.define("BUILD_OPENBLAS", "ON");
+            // OpenBLAS targets the CPU it detects on the build host, and on
+            // AVX-512 hosts its CMake kernel build fails under GCC (the
+            // always_inline intrinsics compile without the -mavx512* flags).
+            // HiGHS' FindHipoDeps only guards against this for hosts naming
+            // "skylake" in /proc/cpuinfo; NO_AVX512 — honored by both HiGHS
+            // and OpenBLAS' getarch — caps detection at AVX2 on every host.
+            dst.define("NO_AVX512", "1");
         }
     }
 
