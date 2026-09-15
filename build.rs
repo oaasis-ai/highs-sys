@@ -141,12 +141,16 @@ fn build() -> bool {
             // DYNAMIC_ARCH compiles each kernel set with its own -march
             // flags and selects one by the CPU at run time.
             dst.define("DYNAMIC_ARCH", "ON");
-            // Bound the kernel sets to CPUs the binaries plausibly run on;
-            // PRESCOTT is the implicit baseline and runtime fallback.
-            dst.define(
-                "DYNAMIC_LIST",
-                "NEHALEM;HASWELL;ZEN;SKYLAKEX;COOPERLAKE;SAPPHIRERAPIDS",
-            );
+            // On x86-64, bound the kernel sets to CPUs the binaries
+            // plausibly run on; PRESCOTT is the implicit baseline and
+            // runtime fallback. The names are x86-64 cores, so any other
+            // architecture keeps OpenBLAS' default DYNAMIC_CORE set.
+            if target.starts_with("x86_64") {
+                dst.define(
+                    "DYNAMIC_LIST",
+                    "NEHALEM;HASWELL;ZEN;SKYLAKEX;COOPERLAKE;SAPPHIRERAPIDS",
+                );
+            }
         }
     }
 
