@@ -129,13 +129,24 @@ fn build() -> bool {
         // doesn't need to install one system-wide.
         if !apple {
             dst.define("BUILD_OPENBLAS", "ON");
-            // OpenBLAS targets the CPU it detects on the build host, and on
-            // AVX-512 hosts its CMake kernel build fails under GCC (the
-            // always_inline intrinsics compile without the -mavx512* flags).
-            // HiGHS' FindHipoDeps only guards against this for hosts naming
-            // "skylake" in /proc/cpuinfo; NO_AVX512 — honored by both HiGHS
-            // and OpenBLAS' getarch — caps detection at AVX2 on every host.
-            dst.define("NO_AVX512", "1");
+            // FindHipoDeps passes OpenBLAS its flags (DYNAMIC_ARCH,
+            // ONLY_CBLAS, ...) via FetchContent_Declare(CMAKE_ARGS ...),
+            // which FetchContent ignores; the subproject only sees top-level
+            // cache variables, so the flags we need are defined here.
+            //
+            // Without DYNAMIC_ARCH OpenBLAS compiles one kernel set for the
+            // CPU it detects on the build host: the binary is not portable,
+            // and on AVX-512 hosts the single-target CMake build fails under
+            // GCC (always_inline intrinsics compiled without -mavx512*).
+            // DYNAMIC_ARCH compiles each kernel set with its own -march
+            // flags and selects one by the CPU at run time.
+            dst.define("DYNAMIC_ARCH", "ON");
+            // Bound the kernel sets to CPUs the binaries plausibly run on;
+            // PRESCOTT is the implicit baseline and runtime fallback.
+            dst.define(
+                "DYNAMIC_LIST",
+                "NEHALEM;HASWELL;ZEN;SKYLAKEX;COOPERLAKE;SAPPHIRERAPIDS",
+            );
         }
     }
 
