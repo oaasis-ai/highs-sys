@@ -148,7 +148,7 @@ fn build() -> bool {
             if target.starts_with("x86_64") {
                 dst.define(
                     "DYNAMIC_LIST",
-                    "NEHALEM;HASWELL;ZEN;SKYLAKEX;COOPERLAKE;SAPPHIRERAPIDS",
+                    "NEHALEM;HASWELL;ZEN",
                 );
             }
         }
