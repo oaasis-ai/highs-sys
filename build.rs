@@ -128,7 +128,8 @@ fn build() -> bool {
         // other platform we let HiGHS fetch + build OpenBLAS so the user
         // doesn't need to install one system-wide.
         if !apple {
-            dst.define("BUILD_OPENBLAS", "ON");
+            // EXPERIMENT D: the previously-green build had this OFF in effect.
+            dst.define("BUILD_OPENBLAS", "OFF");
             // FindHipoDeps passes OpenBLAS its flags (DYNAMIC_ARCH,
             // ONLY_CBLAS, ...) via FetchContent_Declare(CMAKE_ARGS ...),
             // which FetchContent ignores; the subproject only sees top-level
