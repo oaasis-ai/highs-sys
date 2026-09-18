@@ -145,11 +145,14 @@ fn build() -> bool {
             // plausibly run on; PRESCOTT is the implicit baseline and
             // runtime fallback. The names are x86-64 cores, so any other
             // architecture keeps OpenBLAS' default DYNAMIC_CORE set.
+            // No AVX-512 core belongs in this list: HiGHS forces NO_AVX512
+            // for Linux OpenBLAS builds, because OpenBLAS' DYNAMIC_ARCH CMake
+            // build mis-scopes the AVX512-gated macros. Naming SKYLAKEX,
+            // COOPERLAKE or SAPPHIRERAPIDS still builds those kernels, now
+            // without -mavx512*, and their inline asm fails to compile
+            // ("the register 'zmm31' cannot be clobbered").
             if target.starts_with("x86_64") {
-                dst.define(
-                    "DYNAMIC_LIST",
-                    "NEHALEM;HASWELL;ZEN;SKYLAKEX;COOPERLAKE;SAPPHIRERAPIDS",
-                );
+                dst.define("DYNAMIC_LIST", "NEHALEM;HASWELL;ZEN");
             }
         }
     }
