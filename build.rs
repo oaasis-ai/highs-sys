@@ -108,6 +108,10 @@ fn build() -> bool {
     if emscripten {
         dst.no_default_flags(true);
         dst.cxxflag("-fexceptions");
+        // Emscripten's toolchain file reports CMAKE_SYSTEM_PROCESSOR as `x86`
+        // unless told otherwise, so HiGHS' 32-bit x86 branch adds `-msse2`,
+        // which em++ rejects without `-msimd128`.
+        dst.define("EMSCRIPTEN_SYSTEM_PROCESSOR", "wasm32");
     }
 
     // Avoid using downstream project's profile setting for HiGHS build.
